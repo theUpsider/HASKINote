@@ -4,20 +4,9 @@ This application converts spoken words in an mp4 video file to text. It first co
 
 ## Dependencies
 
-This application depends on the following Python libraries:
-
-- moviepy
-- pydub
-- ctranslate2
-
 It also requires `ffmpeg` to be installed and available in your PATH.
 
 You can install the Python dependencies with pip:
-
-```sh
-pip install moviepy pydub ctranslate2
-```
-or use the requirements.txt file
 ```sh
 pip install -r requirements.txt
 ```
