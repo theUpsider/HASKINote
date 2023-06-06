@@ -142,7 +142,7 @@ def process(video_path, do_summarize, model_size, language, instruction, tempera
 
 iface = gr.Interface(
     fn=process,
-    inputs=[gr.inputs.File(label="Video File"), gr.inputs.Checkbox(label="Use instruction LLM (Takes forever!)"), gr.inputs.Dropdown(model_options), gr.inputs.Dropdown(language_options), gr.inputs.Textbox(default="Summarize the following German transcript of a meeting by summarizing it, then structuring it into headings and bullet points to make a meaningful protocol."), gr.inputs.Slider(0, 1, 0.1, label="Temperature", default=0.1)],
+    inputs=[gr.inputs.File(label="Video File"), gr.inputs.Checkbox(label="Use instruction LLM (Takes forever!)"), gr.inputs.Dropdown(model_options), gr.inputs.Dropdown(language_options), gr.inputs.Textbox(default="Summarize the following transcript of a meeting by summarizing it, then structuring it into headings and bullet points to make a meaningful protocol."), gr.inputs.Slider(0, 1, 0.1, label="Temperature", default=0.12)],
     outputs=[gr.outputs.Textbox(label="Transcribed Text"), gr.outputs.Textbox(label="Summarized Text")],
     title="Video to Text Conversion",
     description="Convert a video to text using the Llama model, whisper and some additional libs. Choose a model size, language and instruction. The model will then transcribe the video, summarize the text and structure it into headings and bullet points."
