@@ -54,8 +54,9 @@ language_options = ["de", "en", "es", "fr", "it", "nl", "pl"]
 #     video = VideoFileClip(video_path)
 #     video.audio.write_audiofile(audio_path)
 
-def convert_audio_to_wav(audio_path, wav_path):
-    audio = AudioSegment.from_file(audio_path, format="mp4")
+def convert_file_to_wav(audio_path, wav_path):
+    file_format = audio_path.split(".")[-1]
+    audio = AudioSegment.from_file(audio_path, format=file_format)
     audio = audio.set_channels(1)  # Ensure mono audio
     audio = audio.set_frame_rate(16000)  # Set frame rate
     audio.export(wav_path, format="wav")
@@ -126,11 +127,11 @@ def evaluate(
     return output.split("### Response:")[1].strip()
 
 
-def process(video_path, do_summarize, model_size, language, instruction, temperature, progress=gr.Progress()):
+def process(file_path, do_summarize, model_size, language, instruction, temperature, progress=gr.Progress()):
     # convert_video_to_audio(video_path, audio_path)
     progress(0, desc="Converting video to audio")
     audio_path = "output.mp4"
-    convert_audio_to_wav(video_path.name, audio_path)
+    convert_file_to_wav(file_path.name, audio_path)
     progress(0.1, desc="Transcribing audio")
     text = transcribe_audio(audio_path, model_size, language, progress)
     if do_summarize:
@@ -143,7 +144,7 @@ def process(video_path, do_summarize, model_size, language, instruction, tempera
 
 iface = gr.Interface(
     fn=process,
-    inputs=[gr.inputs.File(label="Video File"), gr.inputs.Checkbox(label="Use instruction LLM (Takes forever!)"), gr.inputs.Dropdown(model_options), gr.inputs.Dropdown(language_options), gr.inputs.Textbox(default="Summarize the following German transcript of a meeting by summarizing it, then structuring it into headings and bullet points to make a meaningful protocol."), gr.inputs.Slider(0, 1, 0.1, label="Temperature", default=0.12)],
+    inputs=[gr.inputs.File(label="Video/Audio File"), gr.inputs.Checkbox(label="Use instruction LLM (Takes forever!)"), gr.inputs.Dropdown(model_options), gr.inputs.Dropdown(language_options), gr.inputs.Textbox(default="Summarize the following German transcript of a meeting by summarizing it, then structuring it into headings and bullet points to make a meaningful protocol."), gr.inputs.Slider(0, 1, 0.1, label="Temperature", default=0.12)],
     outputs=[gr.outputs.Textbox(label="Transcribed Text"), gr.outputs.Textbox(label="Summarized Text")],
     title="Video to Text Conversion",
     description="Convert a video to text using the Llama model, whisper and some additional libs. Choose a model size, language and instruction. The model will then transcribe the video, summarize the text and structure it into headings and bullet points."
