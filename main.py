@@ -8,7 +8,7 @@ from peft import PeftModel
 from transformers import LlamaTokenizer, LlamaForCausalLM, GenerationConfig
 load_dotenv()
 
-tokenizer = LlamaTokenizer.from_pretrained("decapoda-research/llama-7b-hf")
+tokenizer = LlamaTokenizer.from_pretrained("decapoda-research/llama-7b-hf", cache_dir=os.getenv("CACHE_DIR"))
 BASE_MODEL = "decapoda-research/llama-7b-hf"
 LORA_WEIGHTS = "tloen/alpaca-lora-7b"
 if torch.cuda.is_available():
@@ -25,18 +25,19 @@ if device == "cuda":
         BASE_MODEL,
         load_in_8bit=False,
         device_map="auto",
+        cache_dir=os.getenv("CACHE_DIR")
     )
     model = PeftModel.from_pretrained(
         model, LORA_WEIGHTS
     )
 else:
     model = LlamaForCausalLM.from_pretrained(
-        BASE_MODEL, device_map={"": device}, low_cpu_mem_usage=True
+        BASE_MODEL, device_map={"": device}, low_cpu_mem_usage=True, cache_dir=os.getenv("CACHE_DIR")
     )
     model = PeftModel.from_pretrained(
         model,
         LORA_WEIGHTS,
-        device_map={"": device},
+        device_map={"": device}
     )
 
 if device != "cpu":
@@ -142,11 +143,11 @@ def process(video_path, do_summarize, model_size, language, instruction, tempera
 
 iface = gr.Interface(
     fn=process,
-    inputs=[gr.inputs.File(label="Video File"), gr.inputs.Checkbox(label="Use instruction LLM (Takes forever!)"), gr.inputs.Dropdown(model_options), gr.inputs.Dropdown(language_options), gr.inputs.Textbox(default="Summarize the following transcript of a meeting by summarizing it, then structuring it into headings and bullet points to make a meaningful protocol."), gr.inputs.Slider(0, 1, 0.1, label="Temperature", default=0.12)],
+    inputs=[gr.inputs.File(label="Video File"), gr.inputs.Checkbox(label="Use instruction LLM (Takes forever!)"), gr.inputs.Dropdown(model_options), gr.inputs.Dropdown(language_options), gr.inputs.Textbox(default="Summarize the following German transcript of a meeting by summarizing it, then structuring it into headings and bullet points to make a meaningful protocol."), gr.inputs.Slider(0, 1, 0.1, label="Temperature", default=0.12)],
     outputs=[gr.outputs.Textbox(label="Transcribed Text"), gr.outputs.Textbox(label="Summarized Text")],
     title="Video to Text Conversion",
     description="Convert a video to text using the Llama model, whisper and some additional libs. Choose a model size, language and instruction. The model will then transcribe the video, summarize the text and structure it into headings and bullet points."
 )
 
 if __name__ == "__main__":
-    iface.queue(concurrency_count=int(os.getenv("GRADIO_CONCURRENCY_COUNT", 1))).launch(server_name=os.getenv("GRADIO_SERVER_NAME", "localhost"), server_port=int(os.getenv("GRADIO_SERVER_PORT", 7860)))
+    iface.queue(concurrency_count=int(os.getenv("GRADIO_CONCURRENCY_COUNT", 1))).launch(server_name=os.getenv("GRADIO_SERVER_NAME", None), server_port=int(os.getenv("GRADIO_SERVER_PORT", 7860)))

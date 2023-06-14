@@ -1,0 +1,14 @@
+services:
+  haskinote:
+    image: haskinote
+    ports:
+      - "7862:7861"
+    volumes:
+      - /mnt/media/models/huggingface:/tmp/huggingface
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ['0','1','2','3']
+              capabilities: [gpu]

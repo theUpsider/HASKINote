@@ -1,14 +1,15 @@
 # Speech to Text Conversion Application
 
-This application converts spoken words in an mp4 video file to text. It first converts the video to a 16kbits wav audio file, and then uses the Whisper ASR system to transcribe the speech to text.
+This application converts spoken words in an mp4 video file to text. It first converts the video to a 16kbits wav audio file, and then uses the Whisper ASR system to transcribe the speech to text. Then it uses Llama to run a language model on the text to correct any errors in the transcription.
 
 ## Dependencies
 
 It also requires `ffmpeg` to be installed and available in your PATH.
 
-You can install the Python dependencies with pip:
+You can install the Python dependencies with conda:
+
 ```sh
-pip install -r requirements.txt
+conda env create -f environment.yml
 ```
 
 For `ffmpeg`, you can install it on Ubuntu using apt:
@@ -34,19 +35,8 @@ To run this application, you can use the following command:
 python main.py
 ```
 
-This will take the input video file `"input.mp4"`, convert it to an audio file `"output.mp4"`, convert that audio file to a wav file `"output.wav"`, and finally, use the Whisper ASR system to transcribe the audio into text.
-
-You need to replace `"path_to_your_model"` in `main.py` with the actual path to your Whisper ASR model.
+This will open a gradio interface where you can upload a video file and see the transcription.
 
 ## License
 
 This project is licensed under the terms of the MIT license.
-
-## Contact
-
-For any questions, you can reach us at [your-email@example.com](mailto:your-email@example.com).
-```
-
-Remember to replace `[your-email@example.com](mailto:your-email@example.com)` with your actual email address or other contact information. If you don't want to provide an email address, you could instead instruct people to open issues in the GitHub repository if they have questions or problems.
-
-Also, replace the license with the one that suits your needs and preferences.
