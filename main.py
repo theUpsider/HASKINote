@@ -4,7 +4,7 @@ import gradio as gr
 from pydub import AudioSegment
 from faster_whisper import WhisperModel
 from dotenv import load_dotenv
-from peft import PeftModel
+from peft import PeftModel # parameter efficient fine tuning
 from transformers import LlamaTokenizer, LlamaForCausalLM, GenerationConfig
 load_dotenv()
 
@@ -129,7 +129,7 @@ def evaluate(
 
 def process(file_path, do_summarize, model_size, language, instruction, temperature, progress=gr.Progress()):
     # convert_video_to_audio(video_path, audio_path)
-    progress(0, desc="Converting video to audio")
+    progress(0, desc="Converting audio")
     audio_path = "output.mp4"
     convert_file_to_wav(file_path.name, audio_path)
     progress(0.1, desc="Transcribing audio")
