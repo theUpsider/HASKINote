@@ -1,16 +1,17 @@
 import os
 import torch
 import gradio as gr
+import gradio.components as comp
 from pydub import AudioSegment
 from faster_whisper import WhisperModel
 from dotenv import load_dotenv
-from peft import PeftModel # parameter efficient fine tuning
-from transformers import LlamaTokenizer, LlamaForCausalLM, GenerationConfig
+# from peft import PeftModel # parameter efficient fine tuning
+# from transformers import LlamaTokenizer, LlamaForCausalLM, GenerationConfig
 load_dotenv()
 
-tokenizer = LlamaTokenizer.from_pretrained("decapoda-research/llama-7b-hf", cache_dir=os.getenv("CACHE_DIR"))
-BASE_MODEL = "decapoda-research/llama-7b-hf"
-LORA_WEIGHTS = "tloen/alpaca-lora-7b"
+# tokenizer = LlamaTokenizer.from_pretrained("decapoda-research/llama-7b-hf", cache_dir=os.getenv("CACHE_DIR"))
+# BASE_MODEL = "decapoda-research/llama-7b-hf"
+# LORA_WEIGHTS = "tloen/alpaca-lora-7b"
 if torch.cuda.is_available():
     device = "cuda"
 else:
@@ -20,31 +21,31 @@ try:
         device = "mps"
 except:
     raise ValueError("MPS is not available. Please update to CUDA 11.1+")
-if device == "cuda":
-    model = LlamaForCausalLM.from_pretrained(
-        BASE_MODEL,
-        load_in_8bit=False,
-        device_map="auto",
-        cache_dir=os.getenv("CACHE_DIR")
-    )
-    model = PeftModel.from_pretrained(
-        model, LORA_WEIGHTS
-    )
-else:
-    model = LlamaForCausalLM.from_pretrained(
-        BASE_MODEL, device_map={"": device}, low_cpu_mem_usage=True, cache_dir=os.getenv("CACHE_DIR")
-    )
-    model = PeftModel.from_pretrained(
-        model,
-        LORA_WEIGHTS,
-        device_map={"": device}
-    )
+# if device == "cuda":
+#     model = LlamaForCausalLM.from_pretrained(
+#         BASE_MODEL,
+#         load_in_8bit=False,
+#         device_map="auto",
+#         cache_dir=os.getenv("CACHE_DIR")
+#     )
+#     model = PeftModel.from_pretrained(
+#         model, LORA_WEIGHTS
+#     )
+# else:
+#     model = LlamaForCausalLM.from_pretrained(
+#         BASE_MODEL, device_map={"": device}, low_cpu_mem_usage=True, cache_dir=os.getenv("CACHE_DIR")
+#     )
+#     model = PeftModel.from_pretrained(
+#         model,
+#         LORA_WEIGHTS,
+#         device_map={"": device}
+#     )
 
-if device != "cpu":
-    model.half()
-model.eval()
-if torch.__version__ >= "2":
-    model = torch.compile(model)
+# if device != "cpu":
+#     model.half()
+# model.eval()
+# if torch.__version__ >= "2":
+#     model = torch.compile(model)
 
 model_options= ["tiny", "tiny.en", "base", "base.en",
             "small", "small.en", "medium", "medium.en", "large-v1", "large-v2"]
@@ -94,37 +95,37 @@ def generate_prompt(instruction, input=None):
 {instruction}
 ### Response:"""
 
-def evaluate(
-    instruction,
-    input=None,
-    temperature=0.1,
-    top_p=0.75,
-    top_k=40,
-    num_beams=4,
-    max_new_tokens=128,
-    **kwargs,
-):
-    prompt = generate_prompt(instruction, input)
-    inputs = tokenizer(prompt, return_tensors="pt")
-    input_ids = inputs["input_ids"].to(device)
-    generation_config = GenerationConfig(
-        temperature=temperature,
-        top_p=top_p,
-        top_k=top_k,
-        num_beams=num_beams,
-        **kwargs,
-    )
-    with torch.no_grad():
-        generation_output = model.generate(
-            input_ids=input_ids,
-            generation_config=generation_config,
-            return_dict_in_generate=True,
-            output_scores=True,
-            max_new_tokens=max_new_tokens,
-        )
-    s = generation_output.sequences[0]
-    output = tokenizer.decode(s)
-    return output.split("### Response:")[1].strip()
+# def evaluate(
+#     instruction,
+#     input=None,
+#     temperature=0.1,
+#     top_p=0.75,
+#     top_k=40,
+#     num_beams=4,
+#     max_new_tokens=128,
+#     **kwargs,
+# ):
+#     prompt = generate_prompt(instruction, input)
+#     inputs = tokenizer(prompt, return_tensors="pt")
+#     input_ids = inputs["input_ids"].to(device)
+#     generation_config = GenerationConfig(
+#         temperature=temperature,
+#         top_p=top_p,
+#         top_k=top_k,
+#         num_beams=num_beams,
+#         **kwargs,
+#     )
+#     with torch.no_grad():
+#         generation_output = model.generate(
+#             input_ids=input_ids,
+#             generation_config=generation_config,
+#             return_dict_in_generate=True,
+#             output_scores=True,
+#             max_new_tokens=max_new_tokens,
+#         )
+#     s = generation_output.sequences[0]
+#     output = tokenizer.decode(s)
+#     return output.split("### Response:")[1].strip()
 
 
 def process(file_path, do_summarize, model_size, language, instruction, temperature, progress=gr.Progress()):
@@ -134,7 +135,7 @@ def process(file_path, do_summarize, model_size, language, instruction, temperat
     convert_file_to_wav(file_path.name, audio_path)
     progress(0.1, desc="Transcribing audio")
     text = transcribe_audio(audio_path, model_size, language, progress)
-    if do_summarize:
+    if False:
         progress(0.7, desc="Summarizing text")
         summarized = evaluate(instruction, text, temperature=temperature, top_p=0.75, top_k=40, num_beams=4, max_new_tokens=1200)
     else: 
@@ -144,11 +145,11 @@ def process(file_path, do_summarize, model_size, language, instruction, temperat
 
 iface = gr.Interface(
     fn=process,
-    inputs=[gr.inputs.File(label="Video/Audio File"), gr.inputs.Checkbox(label="Use instruction LLM (Takes forever!)"), gr.inputs.Dropdown(model_options), gr.inputs.Dropdown(language_options), gr.inputs.Textbox(default="Summarize the following German transcript of a meeting by summarizing it, then structuring it into headings and bullet points to make a meaningful protocol."), gr.inputs.Slider(0, 1, 0.1, label="Temperature", default=0.12)],
-    outputs=[gr.outputs.Textbox(label="Transcribed Text"), gr.outputs.Textbox(label="Summarized Text")],
+    inputs=[gr.components.File(label="Video/Audio File"), gr.components.Checkbox(label="Use instruction LLM (Takes forever!)"), gr.components.Dropdown(model_options), gr.components.Dropdown(language_options), gr.components.Textbox(value="Summarize the following German transcript of a meeting by summarizing it, then structuring it into headings and bullet points to make a meaningful protocol."), gr.components.Slider(0, 1, 0.1, label="Temperature", value=0.12)],
+    outputs=[gr.components.Textbox(label="Transcribed Text"), gr.components.Textbox(label="Summarized Text")],
     title="Video to Text Conversion",
     description="Convert a video to text using the Llama model, whisper and some additional libs. Choose a model size, language and instruction. The model will then transcribe the video, summarize the text and structure it into headings and bullet points."
 )
 
 if __name__ == "__main__":
-    iface.queue(concurrency_count=int(os.getenv("GRADIO_CONCURRENCY_COUNT", 1))).launch(server_name=os.getenv("GRADIO_SERVER_NAME", None), server_port=int(os.getenv("GRADIO_SERVER_PORT", 7860)))
+    iface.queue().launch(server_name=os.getenv("GRADIO_SERVER_NAME", None), server_port=int(os.getenv("GRADIO_SERVER_PORT", 7860)))
