@@ -2,3 +2,4 @@ output.mp4
 media/
 venv/
 .env.prod
+whisper_diarization/

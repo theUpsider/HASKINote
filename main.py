@@ -7,6 +7,7 @@ from faster_whisper import WhisperModel
 from dotenv import load_dotenv
 # from peft import PeftModel # parameter efficient fine tuning
 # from transformers import LlamaTokenizer, LlamaForCausalLM, GenerationConfig
+
 load_dotenv()
 
 # tokenizer = LlamaTokenizer.from_pretrained("decapoda-research/llama-7b-hf", cache_dir=os.getenv("CACHE_DIR"))
@@ -151,5 +152,8 @@ iface = gr.Interface(
     description="Convert a video to text using the Llama model, whisper and some additional libs. Choose a model size, language and instruction. The model will then transcribe the video, summarize the text and structure it into headings and bullet points."
 )
 
+def handle_auth(username, password):
+    return username == os.getenv("GRADIO_USERNAME") and password == os.getenv("GRADIO_PASSWORD")
+
 if __name__ == "__main__":
-    iface.queue().launch(server_name=os.getenv("GRADIO_SERVER_NAME", None), server_port=int(os.getenv("GRADIO_SERVER_PORT", 7860)))
+    iface.queue().launch(auth=handle_auth,server_name=os.getenv("GRADIO_SERVER_NAME", None), server_port=int(os.getenv("GRADIO_SERVER_PORT", 7860)))

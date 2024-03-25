@@ -1,10 +1,10 @@
-FROM continuumio/miniconda3
+FROM python:3.9.12-bullseye
 WORKDIR /code
 
 COPY ./tloen ./
 COPY ./main.py ./
-# COPY ./.env.prod ./.env
-COPY ./requirements.txt ./
+#COPY ./.env.prod ./.env
+ADD requirements.txt /code
 
 # pip install -r requirements.txt
 RUN pip install -r requirements.txt
