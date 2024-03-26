@@ -3,3 +3,8 @@ media/
 venv/
 .env.prod
 whisper_diarization/
+nemo_msdd_configs/
+temp_outputs/
+.vscode/
+error.log
+.vscode/settings.json
